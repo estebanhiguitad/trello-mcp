@@ -16,9 +16,20 @@ A Model Context Protocol (MCP) server that provides tools to fetch and interact 
 
 ### 1. Get Trello API Credentials
 
-1. Visit https://trello.com/app-key to get your API key
-2. On the same page, click on "Token" link to generate your API token
-3. Copy both the API key and token
+**Important:** You need to create a Power-Up to get API credentials.
+
+1. Visit https://trello.com/power-ups/admin
+2. Click "Create New Power-Up" (or "Crear" button)
+3. Fill in basic information:
+   - Name: "Trello MCP" (or any name you prefer)
+   - Workspace: Select your workspace
+4. Once created, go to the "API Key" section in your Power-Up settings
+5. You'll see your **API Key** displayed (a 32-character string)
+6. Click on the "Token" link (or "token" in the description) to generate your API token
+7. Authorize the token when prompted
+8. Copy both the **API key** and **API token**
+
+Alternatively, you can go directly to https://trello.com/app-key if you already have a Power-Up created.
 
 ### 2. Install Dependencies
 
@@ -49,15 +60,16 @@ Run the server directly:
 npm start
 ```
 
-## Configuration for Claude Desktop
+## Configuration
 
-Add this to your Claude Desktop config file:
+You can configure this MCP server globally in Claude Desktop or per-project in Claude Code CLI.
 
-### macOS
-Edit: `~/Library/Application Support/Claude/claude_desktop_config.json`
+### Option 1: Global Configuration (Claude Desktop)
 
-### Windows
-Edit: `%APPDATA%\Claude\claude_desktop_config.json`
+Edit your Claude Desktop config file:
+
+**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+**Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
 Add the following configuration:
 
@@ -78,20 +90,52 @@ Add the following configuration:
 
 Replace `/absolute/path/to/trello-mcp/` with the actual path to this directory.
 
-Alternatively, if you have a `.env` file configured, you can use:
+After adding the configuration, restart Claude Desktop.
+
+### Option 2: Per-Project Configuration (Claude Code CLI)
+
+For Claude Code CLI, MCP servers are configured per-project in `~/.claude.json`.
+
+**Important:** You must include the `type: "stdio"` field and the `env` variables directly in the configuration. The `.env` file won't be loaded automatically.
+
+Use this command to configure for a specific project:
+
+```bash
+# Using jq to add the configuration
+jq '.projects."/path/to/your/project".mcpServers.trello = {
+  "type": "stdio",
+  "command": "node",
+  "args": ["/Users/ehigu/Documents/Esteban/Projects/habitus/webapp/trello-mcp/index.js"],
+  "env": {
+    "TRELLO_API_KEY": "your_api_key_here",
+    "TRELLO_API_TOKEN": "your_api_token_here"
+  }
+}' ~/.claude.json > /tmp/claude_config.json && mv /tmp/claude_config.json ~/.claude.json
+```
+
+Or manually edit `~/.claude.json`:
 
 ```json
 {
-  "mcpServers": {
-    "trello": {
-      "command": "node",
-      "args": ["/absolute/path/to/trello-mcp/index.js"]
+  "projects": {
+    "/path/to/your/project": {
+      "mcpServers": {
+        "trello": {
+          "type": "stdio",
+          "command": "node",
+          "args": ["/Users/ehigu/Documents/Esteban/Projects/habitus/webapp/trello-mcp/index.js"],
+          "env": {
+            "TRELLO_API_KEY": "your_api_key_here",
+            "TRELLO_API_TOKEN": "your_api_token_here"
+          }
+        }
+      }
     }
   }
 }
 ```
 
-After adding the configuration, restart Claude Desktop.
+After adding the configuration, restart Claude Code.
 
 ## Available Tools
 
@@ -170,11 +214,41 @@ If you see authentication errors:
 2. Ensure dependencies are installed: `npm install`
 3. Verify environment variables are set correctly
 
+### MCP Server Shows "Failed" Status
+
+If the MCP server shows as "failed" in Claude Code:
+
+1. **Missing `type` field**: Make sure your configuration includes `"type": "stdio"`. This is required for Claude Code CLI.
+
+2. **Environment variables not loaded**: The `.env` file is NOT automatically loaded when Claude Code runs the MCP server. You must include the `env` object with your API credentials directly in the configuration:
+   ```json
+   {
+     "type": "stdio",
+     "command": "node",
+     "args": ["/path/to/trello-mcp/index.js"],
+     "env": {
+       "TRELLO_API_KEY": "your_api_key",
+       "TRELLO_API_TOKEN": "your_api_token"
+     }
+   }
+   ```
+
+3. **Check logs**: Run `claude --debug` to see detailed error logs
+
+4. **Test manually**: Run the server directly to verify it works:
+   ```bash
+   cd /path/to/trello-mcp
+   TRELLO_API_KEY=your_key TRELLO_API_TOKEN=your_token node index.js
+   ```
+
+5. **Restart Claude Code**: After configuration changes, completely quit and restart Claude Code
+
 ### MCP Server Not Showing in Claude
 
-1. Check the path in your Claude Desktop config is absolute and correct
-2. Restart Claude Desktop completely
+1. Check the path in your config is absolute and correct
+2. Restart Claude Desktop/Code completely
 3. Check Claude Desktop logs for any errors
+4. For Claude Code CLI, verify the configuration is in the correct project path in `~/.claude.json`
 
 ## License
 
