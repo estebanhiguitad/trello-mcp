@@ -42,14 +42,27 @@ class TrelloMCPServer {
     });
   }
 
-  async makeRequest(endpoint) {
+  async makeRequest(endpoint, options = {}) {
     const url = `${TRELLO_API_BASE}${endpoint}`;
     const separator = endpoint.includes('?') ? '&' : '?';
     const fullUrl = `${url}${separator}key=${TRELLO_API_KEY}&token=${TRELLO_API_TOKEN}`;
 
-    const response = await fetch(fullUrl);
+    const fetchOptions = {
+      method: options.method || 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      ...options,
+    };
+
+    if (options.body) {
+      fetchOptions.body = JSON.stringify(options.body);
+    }
+
+    const response = await fetch(fullUrl, fetchOptions);
     if (!response.ok) {
-      throw new Error(`Trello API error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(`Trello API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
     return response.json();
   }
@@ -180,6 +193,24 @@ class TrelloMCPServer {
             },
             required: ['card_id']
           }
+        },
+        {
+          name: 'add_comment_to_card',
+          description: 'Add a comment to a specific card',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              card_id: {
+                type: 'string',
+                description: 'The ID of the card to comment on'
+              },
+              text: {
+                type: 'string',
+                description: 'The comment text to add'
+              }
+            },
+            required: ['card_id', 'text']
+          }
         }
       ]
     }));
@@ -287,6 +318,24 @@ class TrelloMCPServer {
                 {
                   type: 'text',
                   text: JSON.stringify(actions, null, 2)
+                }
+              ]
+            };
+          }
+
+          case 'add_comment_to_card': {
+            const result = await this.makeRequest(
+              `/cards/${args.card_id}/actions/comments`,
+              {
+                method: 'POST',
+                body: { text: args.text }
+              }
+            );
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: `Comment added successfully!\n\n${JSON.stringify(result, null, 2)}`
                 }
               ]
             };

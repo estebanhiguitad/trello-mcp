@@ -11,6 +11,7 @@ A Model Context Protocol (MCP) server that provides tools to fetch and interact 
 - Get specific card details
 - Search for cards across boards
 - Get card actions/history
+- Add comments to cards
 
 ## Setup
 
@@ -189,6 +190,13 @@ Get actions (activity/history) for a specific card.
 **Parameters:**
 - `card_id` (required): The ID of the card
 
+### `add_comment_to_card`
+Add a comment to a specific card.
+
+**Parameters:**
+- `card_id` (required): The ID of the card
+- `text` (required): The comment text to add
+
 ## Usage Examples
 
 Once configured in Claude Desktop, you can use natural language to interact with your Trello boards:
@@ -198,6 +206,8 @@ Once configured in Claude Desktop, you can use natural language to interact with
 - "Search for cards containing 'bug fix'"
 - "Show me the details of card [card_id]"
 - "What are the lists in my board?"
+- "Add a comment to card [card_id] saying 'This looks good!'"
+- "Comment on card [card_id] with 'Reviewed and approved'"
 
 ## Troubleshooting
 
