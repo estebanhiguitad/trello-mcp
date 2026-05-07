@@ -211,6 +211,24 @@ class TrelloMCPServer {
             },
             required: ['card_id', 'text']
           }
+        },
+        {
+          name: 'move_card_to_list',
+          description: 'Move a card to a different list (e.g., from "To Do" to "In Progress")',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              card_id: {
+                type: 'string',
+                description: 'The ID of the card to move'
+              },
+              list_id: {
+                type: 'string',
+                description: 'The ID of the destination list'
+              }
+            },
+            required: ['card_id', 'list_id']
+          }
         }
       ]
     }));
@@ -336,6 +354,24 @@ class TrelloMCPServer {
                 {
                   type: 'text',
                   text: `Comment added successfully!\n\n${JSON.stringify(result, null, 2)}`
+                }
+              ]
+            };
+          }
+
+          case 'move_card_to_list': {
+            const result = await this.makeRequest(
+              `/cards/${args.card_id}`,
+              {
+                method: 'PUT',
+                body: { idList: args.list_id }
+              }
+            );
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: `Card moved successfully!\n\n${JSON.stringify(result, null, 2)}`
                 }
               ]
             };

@@ -12,6 +12,7 @@ A Model Context Protocol (MCP) server that provides tools to fetch and interact 
 - Search for cards across boards
 - Get card actions/history
 - Add comments to cards
+- Move cards between lists (change status)
 
 ## Setup
 
@@ -197,6 +198,15 @@ Add a comment to a specific card.
 - `card_id` (required): The ID of the card
 - `text` (required): The comment text to add
 
+### `move_card_to_list`
+Move a card to a different list (change its status).
+
+**Parameters:**
+- `card_id` (required): The ID of the card to move
+- `list_id` (required): The ID of the destination list
+
+**Note:** To use this tool, you first need to get the list IDs using `get_board_lists`.
+
 ## Usage Examples
 
 Once configured in Claude Desktop, you can use natural language to interact with your Trello boards:
@@ -208,6 +218,13 @@ Once configured in Claude Desktop, you can use natural language to interact with
 - "What are the lists in my board?"
 - "Add a comment to card [card_id] saying 'This looks good!'"
 - "Comment on card [card_id] with 'Reviewed and approved'"
+- "Move card [card_id] to list [list_id]"
+- "Change the status of card [card_id] from To Do to In Progress"
+
+**Workflow example for moving cards:**
+1. First, get the lists: "Show me the lists in board [board_id]"
+2. Identify the destination list ID from the results
+3. Move the card: "Move card [card_id] to list [list_id]"
 
 ## Troubleshooting
 
